@@ -1,1 +1,241 @@
 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NEURAL FIND | AI Lost & Found</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header class="navbar">
+    <div class="logo">◈ NEURAL FIND</div>
+    <div class="nav-label">AI OBJECT SEARCH SYSTEM</div>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <div class="tag">ARTIFICIAL INTELLIGENCE • COMPUTER VISION</div>
+
+        <h1>
+            FIND WHAT<br>
+            <span>YOU LOST.</span>
+        </h1>
+
+        <p>
+            Upload an object image and let artificial intelligence
+            discover visually similar registered items.
+        </p>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="alert {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="dashboard">
+
+        <div class="panel">
+            <h2>01 / REPORT AN ITEM</h2>
+            <p>Register a lost or found object.</p>
+
+            <form action="{{ url_for('report_item') }}"
+                  method="POST"
+                  enctype="multipart/form-data">
+
+                <label>Item Name</label>
+                <input type="text"
+                       name="item_name"
+                       placeholder="e.g. Black backpack"
+                       required>
+
+                <label>Description</label>
+                <textarea name="description"
+                          placeholder="Describe the object"></textarea>
+
+                <label>Category</label>
+                <input type="text"
+                       name="category"
+                       placeholder="Bag, phone, wallet...">
+
+                <label>Location</label>
+                <input type="text"
+                       name="location"
+                       placeholder="Where was it lost or found?">
+
+                <label>Item Type</label>
+                <select name="item_type" required>
+                    <option value="lost">Lost Item</option>
+                    <option value="found">Found Item</option>
+                </select>
+
+                <label>Upload Photograph</label>
+                <input type="file"
+                       name="image"
+                       accept="image/png,image/jpeg,image/webp"
+                       required>
+
+                <button type="submit">
+                    REGISTER ITEM →
+                </button>
+
+            </form>
+        </div>
+
+        <div class="panel search-panel">
+
+            <h2>02 / AI VISUAL SEARCH</h2>
+
+            <p>
+                Upload a photograph of your missing object.
+                The CLIP model will search registered found items.
+            </p>
+
+            <form action="{{ url_for('search_item') }}"
+                  method="POST"
+                  enctype="multipart/form-data">
+
+                <label>Upload Lost Object Image</label>
+
+                <input type="file"
+                       name="image"
+                       accept="image/png,image/jpeg,image/webp"
+                       required>
+
+                <button type="submit" class="search-button">
+                    <span>⌕</span> SEARCH WITH AI
+                </button>
+
+            </form>
+
+            <div class="ai-status">
+                <span class="pulse"></span>
+                VISUAL SEARCH ENGINE
+            </div>
+
+        </div>
+
+    </section>
+
+    {% if results is defined %}
+
+    <section class="results">
+
+        <h2>03 / AI MATCHING RESULTS</h2>
+
+        {% if results %}
+
+        <div class="item-grid">
+
+            {% for result in results %}
+
+            <article class="item-card">
+
+                <img src="{{ url_for('uploaded_file',
+                         filename=result.item.image_path.split('/')[-1]) }}"
+                     alt="Matching object"
+                     onerror="this.style.display='none'">
+
+                <div class="card-content">
+
+                    <h3>{{ result.item.item_name }}</h3>
+
+                    <p>{{ result.item.description }}</p>
+
+                    <p>
+                        Location: {{ result.item.location }}
+                    </p>
+
+                    <div class="score">
+                        Similarity:
+                        {{ result.percentage }}%
+                    </div>
+
+                </div>
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <p>No matching found items were discovered.</p>
+
+        {% endif %}
+
+    </section>
+
+    {% endif %}
+
+    <section class="inventory">
+
+        <h2>04 / REGISTERED ITEMS</h2>
+
+        <div class="item-grid">
+
+            {% for item in items %}
+
+            <article class="item-card">
+
+                <div class="card-content">
+
+                    <span class="item-type">
+                        {{ item.item_type | upper }}
+                    </span>
+
+                    <h3>{{ item.item_name }}</h3>
+
+                    <p>{{ item.description }}</p>
+
+                    <p>Location: {{ item.location }}</p>
+
+                    <p>Status: {{ item.status }}</p>
+
+                    {% if item.status == 'active' %}
+
+                    <form action="{{ url_for('resolve_item',
+                                      item_id=item.id) }}"
+                          method="POST">
+
+                        <button type="submit">
+                            MARK RESOLVED
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+                </div>
+
+            </article>
+
+            {% else %}
+
+            <p>No registered items yet.</p>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    <p>NEURAL FIND © 2026 | POWERED BY ARTIFICIAL INTELLIGENCE</p>
+</footer>
+
+</body>
+</html>
